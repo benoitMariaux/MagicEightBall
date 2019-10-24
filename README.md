@@ -1,6 +1,6 @@
 # MagicEightBall (Work In Progress)
 
-A simple [Magic 8 Ball](https://en.wikipedia.org/wiki/Magic_8-Ball) Application made Python 3 and only with Serverless AWS Services ([Lambda](https://aws.amazon.com/lambda/), [Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/)).
+A simple [Magic 8 Ball](https://en.wikipedia.org/wiki/Magic_8-Ball) Application made with Python 3 and only Serverless AWS Services ([Lambda](https://aws.amazon.com/lambda/), [Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/)).
 
 All the services are launched via [CloudFormation](https://aws.amazon.com/cloudformation/) templates, see `iac/`
 
