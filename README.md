@@ -9,7 +9,7 @@ All the services are launched via [CloudFormation](https://aws.amazon.com/cloudf
 ```
 python3 . appname run
 ```
-And go the URL provided at the end:
+And go to the URL provided at the end:
 ```
 ...
 
