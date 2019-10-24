@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Bucket S3 for lambda code"
+
+Parameters:
+  lambdaBucketName:
+    Type: "String"
+    AllowedPattern: "^[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+$"
+    Default: "magic-ball-lambda-bucket"
+
+Resources:
+  s3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties: 
+      AccessControl: Private
+      BucketName: !Ref "lambdaBucketName"

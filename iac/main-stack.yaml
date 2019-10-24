@@ -1,0 +1,163 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Lambda, API Gateway and RDS Aurora Serverless for a Eight Magic Ball App"
+
+Parameters:
+  appName:
+    Type: "String"
+    AllowedPattern: "^[a-zA-Z0-9-]+$"
+
+Resources:
+  magicBallLambdaServiceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName: !Join [ '', [ !Ref "appName", "-lambda-role" ] ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSLambdaExecute"
+        - "arn:aws:iam::aws:policy/AmazonRDSDataFullAccess"
+      Policies:
+        - PolicyName: "SecretsManagerForMagicBall"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Action: "secretsmanager:GetSecretValue"
+                Effect: "Allow"
+                Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:*" # TODO set RDS
+
+  magicBallLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Join [ '', [ !Ref "appName", "-lambda" ] ]
+      Handler: "index.handler"
+      MemorySize: 128
+      Role: !GetAtt "magicBallLambdaServiceRole.Arn"
+      Runtime: python3.7
+      Timeout: 10
+      Code:
+        S3Bucket: !Join [ '', [ !Ref "appName", "-lambda-s3" ] ]
+        S3Key: 'function.zip'
+
+  lambdaLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    DependsOn: magicBallLambdaFunction
+    Properties:
+      LogGroupName: !Join [ '', [ "/aws/lambda/", !Ref "appName", "-lambda" ] ]
+      RetentionInDays: 90
+
+  apiGateway:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Join [ '', [ !Ref "appName", "-api-gateway" ] ]
+      Description: "Magic Ball API Gateway"
+
+  apiGatewayDeployment:
+    Type: "AWS::ApiGateway::Deployment"
+    DependsOn:
+      - "apiGatewayGetMethod"
+      - "apiGatewayPostMethod"
+    Properties:
+      RestApiId: !Ref "apiGateway"
+      StageName: prod
+  
+  apiGatewayGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: "NONE"
+      HttpMethod: "GET"
+      Integration:
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+        Type: "AWS_PROXY"
+        IntegrationHttpMethod: "POST"
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+          - lambdaArn: !GetAtt "magicBallLambdaFunction.Arn"
+      ResourceId: !GetAtt "apiGateway.RootResourceId"
+      RestApiId: !Ref "apiGateway"
+      MethodResponses:
+      - StatusCode: 200
+        ResponseModels:
+          application/json: 'Empty'
+        ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: false
+  
+  apiGatewayOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref "apiGateway"
+      ResourceId: !GetAtt "apiGateway.RootResourceId"
+      HttpMethod: OPTIONS
+      Integration:
+        IntegrationHttpMethod: "POST"
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+            method.response.header.Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+          ResponseTemplates:
+            application/json: ''
+        PassthroughBehavior: WHEN_NO_MATCH
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        Type: MOCK
+      MethodResponses:
+      - StatusCode: 200
+        ResponseModels:
+          application/json: 'Empty'
+        ResponseParameters:
+          method.response.header.Access-Control-Allow-Headers: false
+          method.response.header.Access-Control-Allow-Methods: false
+          method.response.header.Access-Control-Allow-Origin: false
+
+  apiGatewayPostMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: NONE
+      RestApiId: !Ref "apiGateway"
+      ResourceId: !GetAtt "apiGateway.RootResourceId"
+      HttpMethod: POST
+      Integration:
+        IntegrationResponses:
+        - StatusCode: 200
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: "'*'"
+        Type: "AWS_PROXY"
+        IntegrationHttpMethod: "POST"
+        Uri: !Sub
+          - "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations"
+          - lambdaArn: !GetAtt "magicBallLambdaFunction.Arn"
+      MethodResponses:
+      - StatusCode: 200
+        ResponseModels:
+          application/json: 'Empty'
+        ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: false
+      
+  
+  lambdaApiGatewayInvoke:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "magicBallLambdaFunction.Arn"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${apiGateway}/*/*/"
+  
+Outputs:
+  apiGatewayInvokeURL:
+    Value: !Sub "https://${apiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod"
+
+  lambdaArn:
+    Value: !GetAtt "magicBallLambdaFunction.Arn"

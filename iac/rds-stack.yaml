@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "RDS Aurora Serverless with Secret Manager for a Eight Magic Ball App"
+
+Parameters:
+  appName:
+    Type: "String"
+    AllowedPattern: "^[a-zA-Z0-9-]+$"
+
+Resources:
+  rdsSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Join [ '', [ !Ref "appName", "-secret" ] ]
+      Description: 'This is my rds instance secret'
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: 'password'
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+
+  rdsCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Join [ '', [ !Ref "appName", "-rds-cluster" ] ]
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref rdsSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref rdsSecret, ':SecretString:password}}' ]]
+      DatabaseName: EightMagicBall
+      Engine: aurora
+      EngineMode: serverless
+      ScalingConfiguration:
+        AutoPause: true
+        MaxCapacity: 4
+        MinCapacity: 2
+        SecondsUntilAutoPause: 300
+
+Outputs:
+  rdsSecretArn:
+    Value: !Ref rdsSecret
+  
+  rdsClusterId:
+    Value: !Ref rdsCluster
