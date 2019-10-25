@@ -23,3 +23,4 @@ python3 . appname destroy
 ## You will need to : 
 * Configure a [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) account with admin access
 * Install boto3: `pip3 install boto3`
+* Run it inside an AWS Region where Data API for Serverless Aurora is deployed. It works well in Ireland or Northern Virginia.
