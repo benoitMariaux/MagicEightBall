@@ -15,7 +15,7 @@ And go to the URL provided at the end:
 ```
 ...
 
-Now, go to http://appname-web-s3.s3-website-eu-west-1.amazonaws.com
+Now, go to http://appname-magic8ball-3b2c662647f18-web-s3.s3-website-us-east-1.amazonaws.com
 ```
 
 ## Destroy the application
