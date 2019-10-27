@@ -1,4 +1,4 @@
-# MagicEightBall (Work In Progress)
+# MagicEightBall
 
 A simple [Magic 8 Ball](https://en.wikipedia.org/wiki/Magic_8-Ball) Application made with Python 3 and only Serverless AWS Services ([Lambda](https://aws.amazon.com/lambda/), [Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/)).
 
@@ -11,7 +11,7 @@ All the services are launched via [CloudFormation](https://aws.amazon.com/cloudf
 ```
 python3 . appname run
 ```
-And go the URL provided at the end:
+And go to the URL provided at the end:
 ```
 ...
 
@@ -25,5 +25,6 @@ python3 . appname destroy
 ## You will need to : 
 * Configure a [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) account with admin access
 * Install boto3: `pip3 install boto3`
+* Run it inside an AWS Region where Data API for Serverless Aurora is deployed. It works well in Ireland or Northern Virginia.
 
 ![Screenshot](docs/screenshot.png)
