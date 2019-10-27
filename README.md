@@ -4,6 +4,8 @@ A simple [Magic 8 Ball](https://en.wikipedia.org/wiki/Magic_8-Ball) Application 
 
 All the services are launched via [CloudFormation](https://aws.amazon.com/cloudformation/) templates, see `iac/`
 
+![Architecture Schema](docs/Magic8Ball.png)
+
 ## Build the application 
 `appname` is the name you want to give to your application:
 ```
@@ -23,3 +25,5 @@ python3 . appname destroy
 ## You will need to : 
 * Configure a [aws cli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html) account with admin access
 * Install boto3: `pip3 install boto3`
+
+![Screenshot](docs/screenshot.png)

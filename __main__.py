@@ -21,4 +21,6 @@ if (str(action) != 'run') and (str(action) != 'destroy'):
     print('The second argument must be "run" or "destroy"')
     sys.exit()
 
+app_name = app_name + '-magic8ball-3b2c662647f18' # Avoid already used s3 name
+
 globals()[action](app_name)

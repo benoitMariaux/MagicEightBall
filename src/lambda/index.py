@@ -12,8 +12,8 @@ def handler(event, context):
 
     rdsData = boto3.client('rds-data')
 
-    cluster_arn = '__DB_CLUSTER_ARN__' 
-    secret_arn = '__SECRET_ARN__' 
+    cluster_arn = '__DB_CLUSTER_ARN__'
+    secret_arn = '__SECRET_ARN__'
 
     if event['httpMethod'] == 'GET':
         page = get_current_page(event)
